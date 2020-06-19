@@ -1,4 +1,4 @@
-# Use an existing odkcer image a base
+# Use an existing dokcer image a base
 
 FROM alpine
 
