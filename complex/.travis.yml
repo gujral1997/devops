@@ -1,0 +1,35 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t gujral1997/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run gujral1997/react-test npm run test -- --coverage --watchAll=false
+
+after_success:
+  - docker build -t gujral1997/complex-client ./client
+  - docker build -t gujral1997/complex-nginx ./nginx
+  - docker build -t gujral1997/complex-worker ./worker
+  - docker build -t gujral1997/complex-server ./server
+  # Docker CLI login
+  - echo $DOCKER_PASSWORD | docker login --username $DOCKER_ID --password-stdin
+  # Push Images to docker hub!
+  - docker push gujral1997/complex-client
+  - docker push gujral1997/complex-nginx
+  - docker push gujral1997/complex-worker
+  - docker push gujral1997/complex-server
+  - docker logout
+
+deploy:
+  provider: elasticbeanstalk
+  region: "us-east-2"
+  app: "complex"
+  env: "Complex-env"
+  bucket_name: "elasticbeanstalk-us-east-2-680029890655"
+  bucket_path: "complex"
+  on:
+    branch: master
+  access_key_id: $AWS_ACCESS_KEY
+  secret_access_key: $AWS_SECRET_KEY
